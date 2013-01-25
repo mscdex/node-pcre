@@ -1,0 +1,10 @@
+{ "name": "pcre",
+  "version": "0.0.0",
+  "author": "Brian White <mscdex@mscdex.net>",
+  "description": "A pcre binding for node.js",
+  "main": "./lib/pcre",
+  "engines": { "node": ">=0.8.0" },
+  "keywords": [ "pcre", "regex", "perl", "libpcre", "regexp" ],
+  "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/node-pcre/raw/master/LICENSE" } ],
+  "repository" : { "type": "git", "url": "http://github.com/mscdex/node-pcre.git" }
+}
