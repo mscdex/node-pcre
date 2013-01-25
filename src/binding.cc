@@ -283,7 +283,7 @@ class PCRE : public ObjectWrap {
       HandleScope scope;
       pcre *re;
       struct re_info *info = NULL;
-	  struct re_info tmp_info;
+      struct re_info tmp_info;
       int r, offset, options = 0, subpos, caplen = 0;
       const char *subject;
       size_t sublen;
