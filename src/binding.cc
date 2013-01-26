@@ -440,7 +440,7 @@ class PCRE : public ObjectWrap {
           crlf_is_newline = ((options & (PCRE_NEWLINE_ANY | PCRE_NEWLINE_CRLF
                                          | PCRE_NEWLINE_ANYCRLF)) > 0);
         }
-        isUtf8 = options & PCRE_UTF8;
+        isUtf8 = ((options & PCRE_UTF8) > 0);
       }
 
       while (true) {
@@ -457,7 +457,7 @@ class PCRE : public ObjectWrap {
               if (cur_options == options)
                 goto done;
               ++info->ovector[1];
-              if (crlf_is_newline && info->ovector[1] < sublen - 1
+              if (crlf_is_newline && info->ovector[1] < (sublen - 1)
                   && subject[offset] == '\r' && subject[offset + 1] == '\n')
                 ++info->ovector[1];
               else if (isUtf8) {
