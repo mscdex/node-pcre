@@ -343,8 +343,10 @@ class PCRE : public ObjectWrap {
       }
 
       // this is the only way to get at a string subject's contents long enough
-      // to do the matching without making a copy.
-      // if the subject is not a string, then oh well...
+      // to do the matching without making a copy due to scoping destructing the
+      // Utf8Value.
+      // if the subject is not a string, then hopefully v8 did not spend a lot
+      // of resources in finding that out...
       String::Utf8Value utfsub(args[subpos]);
       subject = *utfsub;
 
