@@ -32,6 +32,7 @@ static Persistent<FunctionTemplate> constructor;
 static Persistent<String> erroffset_symbol;
 static Persistent<String> errcode_symbol;
 static Persistent<String> named_symbol;
+static Persistent<String> err_fullinfo_symbol;
 
 typedef unordered_multimap<int,const char*> NameMap;
 
@@ -170,7 +171,7 @@ class PCRE : public ObjectWrap {
       if (r < 0) {
         free(re);
         Local<Object> err_obj =
-          Exception::Error(String::New("pcre_fullinfo failure"))->ToObject();
+          Exception::Error(err_fullinfo_symbol)->ToObject();
         err_obj->Set(errcode_symbol, Integer::New(r));
         return ThrowException(err_obj);
       }
@@ -195,7 +196,7 @@ class PCRE : public ObjectWrap {
         int r = pcre_fullinfo(obj->re, obj->info.extra, PCRE_INFO_SIZE, &size);
         if (r < 0) {
           Local<Object> err_obj =
-            Exception::Error(String::New("pcre_fullinfo failure"))->ToObject();
+            Exception::Error(err_fullinfo_symbol)->ToObject();
           err_obj->Set(errcode_symbol, Integer::New(r));
           return ThrowException(err_obj);
         }
@@ -239,7 +240,7 @@ class PCRE : public ObjectWrap {
       if (r < 0) {
         pcre_free(re);
         Local<Object> err_obj =
-          Exception::Error(String::New("pcre_fullinfo failure"))->ToObject();
+          Exception::Error(err_fullinfo_symbol)->ToObject();
         err_obj->Set(errcode_symbol, Integer::New(r));
         return ThrowException(err_obj);
       }
@@ -332,7 +333,7 @@ class PCRE : public ObjectWrap {
           if (r < 0) {
             pcre_free(re);
             Local<Object> err_obj =
-              Exception::Error(String::New("pcre_fullinfo failure"))->ToObject();
+              Exception::Error(err_fullinfo_symbol)->ToObject();
             err_obj->Set(errcode_symbol, Integer::New(r));
             return ThrowException(err_obj);
           }
@@ -506,6 +507,7 @@ class PCRE : public ObjectWrap {
       erroffset_symbol = NODE_PSYMBOL("offset");
       errcode_symbol = NODE_PSYMBOL("code");
       named_symbol = NODE_PSYMBOL("named");
+      err_fullinfo_symbol = NODE_PSYMBOL("pcre_fullinfo failure");
 
       target->Set(name, constructor->GetFunction());
     }
