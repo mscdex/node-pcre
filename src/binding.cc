@@ -36,6 +36,11 @@ static Persistent<String> named_symbol;
 typedef unordered_multimap<int,const char*> NameMap;
 
 struct re_info {
+  re_info() : caplen(0),
+              ovecsize(0),
+              ovector(NULL),
+              extra(NULL) {}
+
   int caplen;
   int ovecsize;
   int *ovector;
@@ -103,9 +108,6 @@ class PCRE : public ObjectWrap {
 
     PCRE() {
       re = NULL;
-      info.extra = NULL;
-      info.ovector = NULL;
-      info.caplen = info.ovecsize = 0;
     }
     ~PCRE() {
       free_re();
