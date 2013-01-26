@@ -9,7 +9,7 @@ Requirements
 
 * [node.js](http://nodejs.org/) -- v0.8.0 or newer
 * Windows, Linux, or OSX
-  * BSD or OpenSolaris support is possible -- just need to generate and submit a config.h with [PCRE 8.32](ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.32.tar.gz) with these options:
+  * BSD or OpenSolaris support is possible -- just need to generate and submit a config.h for [PCRE 8.32](ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.32.tar.gz) with these options:
 ```
 ./configure --enable-utf8 --enable-unicode-properties --enable-static --disable-shared --enable-jit --disable-cpp --enable-pcre8 --disable-pcre16 --disable-pcre32
 ```
