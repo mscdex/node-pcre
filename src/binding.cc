@@ -9,17 +9,19 @@
 #define WHAT_EXECALL 1
 #define WHAT_TEST 2
 
-#define FREE_INFO(info) {                          \
-          if ((info)->ovector)                     \
-            free((info)->ovector);                 \
-          (info)->ovector = NULL;                  \
-          (info)->caplen = (info)->ovecsize = 0;   \
-          if ((info)->extra) {                     \
-            pcre_free_study((info)->extra);        \
-            (info)->extra = NULL;                  \
-          }                                        \
-          if (!(info)->name_map.empty())           \
-            (info)->name_map.clear();              \
+#define FREE_INFO(info) {                           \
+          if (info) {                               \
+            if ((info)->ovector)                    \
+              free((info)->ovector);                \
+            (info)->ovector = NULL;                 \
+            (info)->caplen = (info)->ovecsize = 0;  \
+            if ((info)->extra) {                    \
+              pcre_free_study((info)->extra);       \
+              (info)->extra = NULL;                 \
+            }                                       \
+            if (!(info)->name_map.empty())          \
+              (info)->name_map.clear();             \
+          }                                         \
         }
 
 using namespace node;
@@ -352,8 +354,7 @@ class PCRE : public ObjectWrap {
       else {
         if (!isInstance) {
           pcre_free(re);
-          if (info)
-            FREE_INFO(info);
+          FREE_INFO(info);
         }
         return ThrowException(
           Exception::TypeError(String::New("Invalid subject type"))
@@ -403,8 +404,7 @@ class PCRE : public ObjectWrap {
           } else {
             if (!isInstance) {
               pcre_free(re);
-              if (info)
-                FREE_INFO(info);
+              FREE_INFO(info);
             }
           }
           return scope.Close(Integer::New(r));
