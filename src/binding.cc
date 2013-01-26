@@ -370,46 +370,106 @@ class PCRE : public ObjectWrap {
         );
       }
 
+      int arraylen = 2 + caplen, n = 0, i, o;
       Local<Array> matches;
       Local<Array> match;
+
       Local<Object> named;
       Local<Integer> lbound, rbound;
       NameMap::iterator name_it;
       pair<NameMap::iterator, NameMap::iterator> name_its;
       Local<Array> name_bounds;
-      int arraylen = 2 + caplen, n = 0, i, o;
       bool hasNames = (info ? !info->name_map.empty() : false);
 
-      if (what == WHAT_EXECALL)
+      bool crlf_is_newline = false, isUtf8 = false;
+      int cur_options = options,
+          tmp_options = options | PCRE_NOTEMPTY_ATSTART | PCRE_ANCHORED;
+      if (what == WHAT_EXECALL) {
         matches = Array::New();
+        int re_opts;
+        r = pcre_fullinfo(re, info ? info->extra : NULL, PCRE_INFO_OPTIONS,
+                          &re_opts);
+        if (r < 0) {
+          if (!isInstance) {
+            pcre_free(re);
+            FREE_INFO(info);
+          }
+          return ThrowException(Exception::TypeError(err_fullinfo_symbol));
+        }
+        options |= re_opts;
+      // If we want to continue to search for additional matches in the subject
+      // string, in a similar way to the /g option in Perl, doing so turns out
+      // to be trickier than you might think because of the possibility of
+      // matching an empty string. What happens is as follows:
+      //
+      // If the previous match was NOT for an empty string, we can just start
+      // the next match at the end of the previous one.
+      //
+      // If the previous match WAS for an empty string, we can't do that, as it
+      // would lead to an infinite loop. Instead, a special call of pcre_exec()
+      // is made with the PCRE_NOTEMPTY_ATSTART and PCRE_ANCHORED flags set.
+      // The first of these tells PCRE that an empty string at the start of the
+      // subject is not a valid match; other possibilities must be tried. The
+      // second flag restricts PCRE to one match attempt at the initial string
+      // position. If this match succeeds, an alternative to the empty string
+      // match has been found, and we can print it and proceed round the loop,
+      // advancing by the length of whatever was found. If this match does not
+      // succeed, we still stay in the loop, advancing by just one character.
+      // In UTF-8 mode, which can be set by (*UTF8) in the pattern, this may be
+      // more than one byte.
+      //
+      // However, there is a complication concerned with newlines. When the
+      // newline convention is such that CRLF is a valid newline, we must
+      // advance by two characters rather than one. The newline convention can
+      // be set in the regex by (*CR), etc.; if not, we must find the default.
+        if (options == 0) {
+          int def_newline;
+          r = pcre_config(PCRE_CONFIG_NEWLINE, &def_newline);
+          if (r < 0) {
+            if (!isInstance) {
+              pcre_free(re);
+              FREE_INFO(info);
+            }
+            return ThrowException(
+              Exception::TypeError(String::New("pcre_config failure"))
+            );
+          }
+          crlf_is_newline = (def_newline == (13<<8 | 10) || def_newline == -2
+                             || def_newline == -1);
+        } else {
+          crlf_is_newline = ((options & (PCRE_NEWLINE_ANY | PCRE_NEWLINE_CRLF
+                                         | PCRE_NEWLINE_ANYCRLF)) > 0);
+        }
+        isUtf8 = options & PCRE_UTF8;
+      }
 
       while (true) {
         r = pcre_exec(re,
                       (info ? info->extra : NULL),
-                      subject, sublen, offset, options,
+                      subject, sublen, offset, cur_options,
                       (info ? info->ovector : NULL),
                       (info ? info->ovecsize : 0)
         );
 
         if (r < 0) {
           if (r == PCRE_ERROR_NOMATCH) {
-            if (what == WHAT_TEST) {
-              if (!isInstance)
-                pcre_free(re);
-              return False();
-            } else if (n == 0) {
-              if (!isInstance) {
-                pcre_free(re);
-                FREE_INFO(info);
+            if (what == WHAT_EXECALL && n > 0) {
+              if (cur_options == options)
+                goto done;
+              ++info->ovector[1];
+              if (crlf_is_newline && info->ovector[1] < sublen - 1
+                  && subject[offset] == '\r' && subject[offset + 1] == '\n')
+                ++info->ovector[1];
+              else if (isUtf8) {
+                while (info->ovector[1] < sublen) {
+                  if ((subject[info->ovector[1]] & 0xC0) != 0x80)
+                    break;
+                  ++info->ovector[1];
+                }
               }
-              return Null();
-            } else {
-              if (!isInstance) {
-                pcre_free(re);
-                FREE_INFO(info);
-              }
-              return scope.Close(matches);
+              goto next;
             }
+            goto done;
           } else {
             if (!isInstance) {
               pcre_free(re);
@@ -462,11 +522,38 @@ class PCRE : public ObjectWrap {
             matches->Set(n++, match);
         }
 
-        /*if (info->ovector[0] == info->ovector[1]) {
-          if (info->ovector[0] == sublen)
-            
-        }*/
+        next:
         offset = info->ovector[1];
+
+        // If the previous match was for an empty string, we are finished if we
+        // are at the end of the subject. Otherwise, arrange to run another
+        // match at the same point to see if a non-empty match can be found.
+        if (info->ovector[0] == info->ovector[1]) {
+          if (info->ovector[0] == sublen)
+            goto done;
+          else
+            cur_options = tmp_options;
+        } else
+          cur_options = options;
+      }
+
+      done:
+      if (what == WHAT_TEST) {
+        if (!isInstance)
+          pcre_free(re);
+        return False();
+      } else if (what == WHAT_EXEC || n == 0) {
+        if (!isInstance) {
+          pcre_free(re);
+          FREE_INFO(info);
+        }
+        return Null();
+      } else {
+        if (!isInstance) {
+          pcre_free(re);
+          FREE_INFO(info);
+        }
+        return scope.Close(matches);
       }
     }
 
