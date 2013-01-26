@@ -349,7 +349,11 @@ class PCRE : public ObjectWrap {
       subject = *utfsub;
 
       if (Buffer::HasInstance(args[subpos])) {
+#if NODE_MAJOR_VERSION == 0 && NODE_MINOR_VERSION < 10
         Local<Object> sub_obj = args[subpos]->ToObject();
+#else
+        Local<Value> sub_obj = args[subpos];
+#endif
         subject = Buffer::Data(sub_obj);
         sublen = Buffer::Length(sub_obj);
       } else if (args[subpos]->IsString())
