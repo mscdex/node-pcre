@@ -1,7 +1,12 @@
 #include <node.h>
 #include <node_buffer.h>
 #include <string.h>
-#include <unordered_map>
+#ifdef __APPLE__
+# include <tr1/unordered_map>
+  using namespace std::tr1;
+#else
+# include <unordered_map>
+#endif
 
 #include "pcre.h"
 
