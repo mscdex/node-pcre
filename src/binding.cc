@@ -476,12 +476,23 @@ class PCRE : public ObjectWrap {
       }
 
       while (true) {
-        r = pcre_exec(re,
-                      (info ? info->extra : NULL),
-                      subject, sublen, offset, cur_options,
-                      (info ? info->ovector : NULL),
-                      (info ? info->ovecsize : 0)
-        );
+        if (info && info->jit) {
+          // fast path that bypasses some checks that pcre_exec would otherwise
+          // do before executing the JIT compiled code
+          r = pcre_jit_exec(re,
+                            info->extra, subject, sublen, offset, cur_options,
+                            (info ? info->ovector : NULL),
+                            (info ? info->ovecsize : 0),
+                            info->jit_stack
+          );
+        } else {
+          r = pcre_exec(re,
+                        (info ? info->extra : NULL),
+                        subject, sublen, offset, cur_options,
+                        (info ? info->ovector : NULL),
+                        (info ? info->ovecsize : 0)
+          );
+        }
 
         if (r < 0) {
           if (r == PCRE_ERROR_NOMATCH) {
