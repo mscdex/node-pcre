@@ -90,7 +90,9 @@ int getCapInfo(pcre *re, struct re_info *info) {
           return r;
 
         unsigned char *tabptr = name_table;
-#ifndef _MSC_VER
+#if defined(_MSC_VER) || defined(__APPLE__)
+        info->name_map.rehash(ceil(name_count/info->name_map.max_load_factor()));
+#else
         info->name_map.reserve(name_count);
 #endif
         // TODO: convert second value from cstring to Persistent<String> as
