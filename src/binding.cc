@@ -9,12 +9,16 @@
 #define WHAT_EXECALL 1
 #define WHAT_TEST 2
 
+#define DEFAULT_JIT_STACK_START 1
+#define DEFAULT_JIT_STACK_MAX 32 * 1024
+
 #define FREE_INFO(info) {                           \
           if (info) {                               \
             if ((info)->ovector)                    \
               free((info)->ovector);                \
             (info)->ovector = NULL;                 \
             (info)->caplen = (info)->ovecsize = 0;  \
+            (info)->jit = false;                    \
             if ((info)->extra) {                    \
               pcre_free_study((info)->extra);       \
               (info)->extra = NULL;                 \
@@ -40,7 +44,9 @@ struct re_info {
   re_info() : caplen(0),
               ovecsize(0),
               ovector(NULL),
-              extra(NULL) {}
+              extra(NULL),
+              jit(false),
+              jit_stack(NULL) {}
 
   int caplen;
   int ovecsize;
@@ -49,6 +55,8 @@ struct re_info {
   NameMap name_map;
 
   pcre_extra *extra;
+  bool jit;
+  pcre_jit_stack *jit_stack;
 };
 
 int getCapInfo(pcre *re, struct re_info *info) {
@@ -112,6 +120,8 @@ class PCRE : public ObjectWrap {
     }
     ~PCRE() {
       free_re();
+      if (info.jit_stack)
+        pcre_jit_stack_free(info.jit_stack);
     }
     void free_re() {
       if (re) {
@@ -270,6 +280,28 @@ class PCRE : public ObjectWrap {
           if (obj->info.extra)
             pcre_free_study(obj->info.extra);
           obj->info.extra = extra;
+          if ((options & (PCRE_STUDY_JIT_COMPILE
+                         | PCRE_STUDY_JIT_PARTIAL_HARD_COMPILE
+                         | PCRE_STUDY_JIT_PARTIAL_SOFT_COMPILE)) > 0) {
+            int start_size = DEFAULT_JIT_STACK_START,
+                max_size = DEFAULT_JIT_STACK_MAX;
+
+            obj->info.jit = true;
+
+            if (args.Length() == 3 && args[1]->IsInt32() && args[2]->IsInt32()) {
+              start_size = args[1]->Int32Value();
+              max_size = args[2]->Int32Value();
+            }
+
+            if (start_size > 0 && max_size >= start_size) {
+              pcre_jit_stack *s = pcre_jit_stack_alloc(start_size, max_size);
+              if (obj->info.jit_stack)
+                pcre_jit_stack_free(obj->info.jit_stack);
+              obj->info.jit_stack = s;
+              pcre_assign_jit_stack(extra, NULL, s);
+            }
+          } else
+            obj->info.jit = false;
           return True();
         } else if (err) {
           return ThrowException(
