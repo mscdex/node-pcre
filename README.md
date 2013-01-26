@@ -92,9 +92,9 @@ All static constants for regexp flags/options and errors can be found in `lib/pc
 PCRE static methods
 -------------------
 
-* **exec**(< _string_ >pattern, < _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Compiles `pattern` and executes it on `subject` starting at `offset` in `subject`. `subject` can be a _string_ or _Buffer_. The return value is _null_ in case of no match, or an _array_ containing offsets in the `subject` for the first match. The first two offsets reference the entirety of the matched part of the `subject`. Any additional offsets reference capture groups in order from left to right. Offsets for named capture groups are additionally available on the `named` object.
+* **exec**(< _string_ >pattern, < _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Compiles `pattern` and executes it on `subject` starting at `offset` in `subject`. `subject` can be a _string_ or _Buffer_. The return value is either _null_ in case of no match, an _integer_ error code in case of error, or an _array_ on success containing offsets in the `subject` for the first match. The first two offsets reference the entirety of the matched part of the `subject`. Any additional offsets reference capture groups in order from left to right. Offsets for named capture groups are additionally available on the `named` object.
 
-* **execAll**(< _string_ >pattern, < _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Same as exec() except _null_ is returned for no matches or an _array_ of _array_ matches.
+* **execAll**(< _string_ >pattern, < _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Same as exec() except an _array_ of _array_ matches is returned on success.
 
 * **test**(< _string_ >pattern, < _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _boolean_ - Similar to exec(), but used merely to test if `pattern` matches at least once.
 
@@ -116,6 +116,6 @@ PCRE methods
 
 * **exec**(< _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Similar to PCRE.exec().
 
-* **execAll**(< _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Same as exec() except _null_ is returned for no matches or an _array_ of _array_ matches.
+* **execAll**(< _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _mixed_ - Same as exec() except an _array_ of _array_ matches is returned on success.
 
 * **test**(< _mixed_ >subject, < _integer_ >offset[, < _integer_ >flags]) - _boolean_ - Similar to exec(), but used merely to test if `pattern` matches at least once.
