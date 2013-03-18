@@ -176,7 +176,11 @@ class PCRE : public ObjectWrap {
             String::New("data argument must be a Buffer")));
       }
 
+#if NODE_MAJOR_VERSION == 0 && NODE_MINOR_VERSION < 10
       Local<Object> re_obj = args[0]->ToObject();
+#else
+      Local<Value> re_obj = args[0];
+#endif
       size_t len = Buffer::Length(re_obj);
       pcre *re = (pcre*)malloc(len);
       int r;
