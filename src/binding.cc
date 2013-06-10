@@ -402,7 +402,7 @@ class PCRE : public ObjectWrap {
         subject = Buffer::Data(sub_obj);
         sublen = Buffer::Length(sub_obj);
       } else if (args[subpos]->IsString())
-        sublen = strlen(subject);
+        sublen = args[subpos]->ToString()->Utf8Length();
       else {
         if (!isInstance) {
           pcre_free(re);
