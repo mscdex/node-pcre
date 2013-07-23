@@ -1,5 +1,5 @@
 { "name": "pcre",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Brian White <mscdex@mscdex.net>",
   "description": "A pcre binding for node.js",
   "main": "./lib/pcre",
