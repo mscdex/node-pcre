@@ -549,7 +549,8 @@ class PCRE : public ObjectWrap {
           match->Set(0, Integer::New(info->ovector[0]));
           match->Set(1, Integer::New(info->ovector[1]));
           if (!hasNames) {
-            for (i = o = 2; i < arraylen; ++i, o += 2) {
+            for (i = o = 2; o < arraylen; ++i, o += 2) {
+            printf("i=%d,o=%d\n", i, o);
               match->Set(i, Integer::New(info->ovector[o]));
               match->Set(i + 1, Integer::New(info->ovector[o + 1]));
             }
