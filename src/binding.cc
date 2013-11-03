@@ -17,6 +17,24 @@
 #define DEFAULT_JIT_STACK_START 1
 #define DEFAULT_JIT_STACK_MAX 32 * 1024
 
+#define EXEC_ONLY_OPTIONS (PCRE_ANCHORED            \
+                           | PCRE_NOTBOL            \
+                           | PCRE_NOTEOL            \
+                           | PCRE_NOTEMPTY          \
+                           | PCRE_NO_UTF8_CHECK     \
+                           | PCRE_PARTIAL           \
+                           | PCRE_NEWLINE_CR        \
+                           | PCRE_NEWLINE_LF        \
+                           | PCRE_NEWLINE_CRLF      \
+                           | PCRE_NEWLINE_ANY       \
+                           | PCRE_NEWLINE_ANYCRLF   \
+                           | PCRE_BSR_ANYCRLF       \
+                           | PCRE_BSR_UNICODE       \
+                           | PCRE_NO_START_OPTIMIZE \
+                           | PCRE_PARTIAL_HARD      \
+                           | PCRE_NOTEMPTY_ATSTART)
+
+
 #define FREE_INFO(info) {                           \
           if (info) {                               \
             if ((info)->ovector)                    \
@@ -361,6 +379,8 @@ class PCRE : public ObjectWrap {
 
         re = pcre_compile2(*pat, options, &r, &err, &erroffset, NULL);
 
+        options &= EXEC_ONLY_OPTIONS;
+
         if (re == NULL) {
           Local<Object> err_obj = Exception::Error(String::New(err))->ToObject();
           err_obj->Set(erroffset_symbol, Integer::New(erroffset));
@@ -430,7 +450,9 @@ class PCRE : public ObjectWrap {
       if (what == WHAT_EXECALL) {
         matches = Array::New();
         int re_opts;
-        r = pcre_fullinfo(re, info ? info->extra : NULL, PCRE_INFO_OPTIONS,
+        r = pcre_fullinfo(re,
+                          (info ? info->extra : NULL),
+                          PCRE_INFO_OPTIONS,
                           &re_opts);
         if (r < 0) {
           if (!isInstance) {
@@ -439,7 +461,7 @@ class PCRE : public ObjectWrap {
           }
           return ThrowException(Exception::TypeError(err_fullinfo_symbol));
         }
-        options |= re_opts;
+        options |= (re_opts & EXEC_ONLY_OPTIONS);
       // If we want to continue to search for additional matches in the subject
       // string, in a similar way to the /g option in Perl, doing so turns out
       // to be trickier than you might think because of the possibility of
