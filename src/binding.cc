@@ -491,7 +491,11 @@ class PCRE : public ObjectWrap {
           // fast path that bypasses some checks that pcre_exec would otherwise
           // do before executing the JIT compiled code
           r = pcre_jit_exec(re,
-                            info->extra, subject, sublen, offset, cur_options,
+                            info->extra,
+                            subject,
+                            sublen,
+                            offset,
+                            cur_options,
                             (info ? info->ovector : NULL),
                             (info ? info->ovecsize : 0),
                             info->jit_stack
@@ -499,7 +503,10 @@ class PCRE : public ObjectWrap {
         } else {
           r = pcre_exec(re,
                         (info ? info->extra : NULL),
-                        subject, sublen, offset, cur_options,
+                        subject,
+                        sublen,
+                        offset,
+                        cur_options,
                         (info ? info->ovector : NULL),
                         (info ? info->ovecsize : 0)
           );
