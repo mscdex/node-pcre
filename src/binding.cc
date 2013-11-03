@@ -433,7 +433,7 @@ class PCRE : public ObjectWrap {
         );
       }
 
-      int arraylen = 2 + caplen, n = 0, i, o;
+      int arraylen = 2 + caplen * 2, n = 0, i, o;
       Local<Array> matches;
       Local<Array> match;
 
@@ -571,17 +571,17 @@ class PCRE : public ObjectWrap {
           match->Set(0, Integer::New(info->ovector[0]));
           match->Set(1, Integer::New(info->ovector[1]));
           if (!hasNames) {
-            for (i = o = 2; o < arraylen; ++i, o += 2) {
-              match->Set(i, Integer::New(info->ovector[o]));
-              match->Set(i + 1, Integer::New(info->ovector[o + 1]));
+            for (i = 2; i < arraylen; i += 2) {
+              match->Set(i, Integer::New(info->ovector[i]));
+              match->Set(i + 1, Integer::New(info->ovector[i + 1]));
             }
           } else {
             named = Object::New();
-            for (i = o = 2; i < arraylen; ++i, o += 2) {
+            for (i = o = 2; o < arraylen; ++i, o += 2) {
               lbound = Integer::New(info->ovector[o]);
               rbound = Integer::New(info->ovector[o + 1]);
-              match->Set(i, lbound);
-              match->Set(i + 1, rbound);
+              match->Set(o, lbound);
+              match->Set(o + 1, rbound);
               name_its = info->name_map.equal_range(i - 1);
               for (name_it = name_its.first;
                    name_it != name_its.second;
