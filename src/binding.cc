@@ -309,9 +309,11 @@ class PCRE : public ObjectWrap {
           if (obj->info.extra)
             pcre_free_study(obj->info.extra);
           obj->info.extra = extra;
-          if ((options & (PCRE_STUDY_JIT_COMPILE
-                         | PCRE_STUDY_JIT_PARTIAL_HARD_COMPILE
-                         | PCRE_STUDY_JIT_PARTIAL_SOFT_COMPILE)) > 0) {
+          if (extra->executable_jit != NULL
+              && (extra->flags & PCRE_EXTRA_EXECUTABLE_JIT)
+              && (options & (PCRE_STUDY_JIT_COMPILE
+                             | PCRE_STUDY_JIT_PARTIAL_HARD_COMPILE
+                             | PCRE_STUDY_JIT_PARTIAL_SOFT_COMPILE)) > 0) {
             int start_size = DEFAULT_JIT_STACK_START,
                 max_size = DEFAULT_JIT_STACK_MAX;
 
