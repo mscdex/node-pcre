@@ -501,10 +501,12 @@ class PCRE : public ObjectWrap {
               Exception::TypeError(String::New("pcre_config failure"))
             );
           }
-          crlf_is_newline = (def_newline == (13<<8 | 10) || def_newline == -2
+          crlf_is_newline = (def_newline == (13<<8 | 10)
+                             || def_newline == -2
                              || def_newline == -1);
         } else {
-          crlf_is_newline = ((options & (PCRE_NEWLINE_ANY | PCRE_NEWLINE_CRLF
+          crlf_is_newline = ((options & (PCRE_NEWLINE_ANY
+                                         | PCRE_NEWLINE_CRLF
                                          | PCRE_NEWLINE_ANYCRLF)) > 0);
         }
         isUtf8 = ((options & PCRE_UTF8) > 0);
